@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  business-central:
+    image: quay.io/kiegroup/business-central-workbench:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - JAVA_OPTS=-Xmx2g
+    restart: always
