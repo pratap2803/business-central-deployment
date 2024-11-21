@@ -2,9 +2,17 @@ version: '3.8'
 
 services:
   business-central:
-    image: quay.io/kiegroup/business-central-workbench:latest
+    image: quay.io/kiegroup/business-central-workbench:latest  # Business Central Docker image
+    container_name: business-central
     ports:
-      - "8080:8080"
+      - "8080:8080"  # Expose port 8080 for public access
     environment:
       - JAVA_OPTS=-Xmx2g
-    restart: always
+      - KIE_SERVER_CONTROLLER_USER=saurabh       # Username for the controller
+      - KIE_SERVER_CONTROLLER_PWD=saurabh        # Password for the controller
+      - KIE_SERVER_CONTROLLER_ROLES=admin,kie-server,rest-all,user  # Assign all roles
+      - KIE_ADMIN_USER=saurabh                   # Admin user for Business Central
+      - KIE_ADMIN_PWD=saurabh                    # Admin password for Business Central
+      - KIE_ADMIN_ROLES=admin,kie-server,rest-all,user  # Assign all roles
+    restart: unless-stopped  # Ensures the container restarts on failure
+
