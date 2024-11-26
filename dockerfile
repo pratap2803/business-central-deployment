@@ -23,13 +23,6 @@ RUN mkdir -p \
     chmod 777 $JBOSS_HOME/standalone/tmp && \
     chmod 777 $JBOSS_HOME/standalone/deployments
 
-# Add the set_permissions.sh script and verify if it exists
-COPY set_permissions.sh /usr/local/bin/
-
-# Check if file is copied properly and has execute permissions
-RUN ls -l /usr/local/bin/set_permissions.sh && \
-    chmod +x /usr/local/bin/set_permissions.sh
-
 # Define volumes for persistent data
 VOLUME ["$JBOSS_HOME/standalone/data", \
         "$JBOSS_HOME/standalone/deployments", \
@@ -40,8 +33,8 @@ VOLUME ["$JBOSS_HOME/standalone/data", \
 # Expose necessary ports
 EXPOSE 8080 9990
 
-# Set the entrypoint to set permissions and run the server
-ENTRYPOINT ["set_permissions.sh"]
+# Set the entrypoint to run the server directly
+ENTRYPOINT ["sh", "-c", "$JBOSS_HOME/bin/standalone.sh -b 0.0.0.0"]
 
 # Command to run the Business Central Workbench
 CMD ["sh", "-c", "$JBOSS_HOME/bin/standalone.sh -b 0.0.0.0"]
