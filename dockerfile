@@ -1,11 +1,14 @@
-# Start from the base image
+# Use the base image for Business Central
 FROM quay.io/kiegroup/business-central-workbench:latest
 
-# Set environment variables (adjust as needed for your setup)
+# Set environment variables
 ENV JBOSS_HOME=/opt/jboss/wildfly
 ENV USER=jboss
 
-# Create the necessary directories and set appropriate permissions
+# Switch to root user to ensure all operations can modify directories
+USER root
+
+# Create necessary directories and set permissions
 RUN mkdir -p \
     $JBOSS_HOME/standalone/data/content \
     $JBOSS_HOME/standalone/data/kernel \
@@ -15,26 +18,14 @@ RUN mkdir -p \
     $JBOSS_HOME/standalone/log \
     $JBOSS_HOME/standalone/tmp \
     $JBOSS_HOME/standalone/configuration && \
-    chown -R $USER:$USER $JBOSS_HOME/standalone && \
-    chmod -R 755 $JBOSS_HOME/standalone && \
-    chmod -R u+w,g+w,o+w $JBOSS_HOME/standalone/data/kernel && \
-    chmod 777 $JBOSS_HOME/standalone/data && \
-    chmod 777 $JBOSS_HOME/standalone/log && \
-    chmod 777 $JBOSS_HOME/standalone/tmp && \
-    chmod 777 $JBOSS_HOME/standalone/deployments
+    chmod -R 777 $JBOSS_HOME/standalone && \
+    echo "Directories created and permissions set."
 
-# Define volumes for persistent data
-VOLUME ["$JBOSS_HOME/standalone/data", \
-        "$JBOSS_HOME/standalone/deployments", \
-        "$JBOSS_HOME/standalone/log", \
-        "$JBOSS_HOME/standalone/tmp", \
-        "$JBOSS_HOME/standalone/configuration"]
+# Debugging step: Show the directory structure after setup
+RUN ls -lR $JBOSS_HOME/standalone
 
-# Expose necessary ports
+# Expose necessary ports for Business Central
 EXPOSE 8080 9990
 
-# Set the entrypoint to run the server directly
-ENTRYPOINT ["sh", "-c", "$JBOSS_HOME/bin/standalone.sh -b 0.0.0.0"]
-
-# Command to run the Business Central Workbench
+# Define the entry point to run the application
 CMD ["sh", "-c", "$JBOSS_HOME/bin/standalone.sh -b 0.0.0.0"]
