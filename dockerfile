@@ -23,9 +23,12 @@ RUN mkdir -p \
     chmod 777 $JBOSS_HOME/standalone/tmp && \
     chmod 777 $JBOSS_HOME/standalone/deployments
 
-# Add a script to set permissions at runtime
+# Add the set_permissions.sh script and verify if it exists
 COPY set_permissions.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/set_permissions.sh
+
+# Check if file is copied properly and has execute permissions
+RUN ls -l /usr/local/bin/set_permissions.sh && \
+    chmod +x /usr/local/bin/set_permissions.sh
 
 # Define volumes for persistent data
 VOLUME ["$JBOSS_HOME/standalone/data", \
