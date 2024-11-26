@@ -1,26 +1,36 @@
-# Use the official Business Central Workbench image as the base image
+# Start from the base image
 FROM quay.io/kiegroup/business-central-workbench:latest
 
-# Create all necessary directories for WildFly
+# Set environment variables (adjust as needed for your setup)
+ENV JBOSS_HOME=/opt/jboss/wildfly
+ENV USER=jboss
+
+# Create the necessary directories and set appropriate permissions
 RUN mkdir -p \
-    /opt/jboss/wildfly/standalone/log \
-    /opt/jboss/wildfly/standalone/tmp \
-    /opt/jboss/wildfly/standalone/data/content \
-    /opt/jboss/wildfly/standalone/configuration \
-    /opt/jboss/wildfly/standalone/deployments
+    $JBOSS_HOME/standalone/data/content \
+    $JBOSS_HOME/standalone/data/kernel \
+    $JBOSS_HOME/standalone/data/log \
+    $JBOSS_HOME/standalone/data/tmp \
+    $JBOSS_HOME/standalone/deployments \
+    $JBOSS_HOME/standalone/log \
+    $JBOSS_HOME/standalone/tmp \
+    $JBOSS_HOME/standalone/configuration && \
+    chown -R $USER:$USER $JBOSS_HOME/standalone && \
+    chmod -R 755 $JBOSS_HOME/standalone && \
+    chmod 777 $JBOSS_HOME/standalone/data && \
+    chmod 777 $JBOSS_HOME/standalone/log && \
+    chmod 777 $JBOSS_HOME/standalone/tmp && \
+    chmod 777 $JBOSS_HOME/standalone/deployments
 
-# Set permissions to ensure WildFly can access all directories
-# 777 provides full access (read, write, execute) to all users
-RUN chmod -R 777 /opt/jboss/wildfly/standalone
+# Define volumes for persistent data
+VOLUME ["$JBOSS_HOME/standalone/data", \
+        "$JBOSS_HOME/standalone/deployments", \
+        "$JBOSS_HOME/standalone/log", \
+        "$JBOSS_HOME/standalone/tmp", \
+        "$JBOSS_HOME/standalone/configuration"]
 
-# Ensure the user running the container has the correct ownership of directories
-RUN chown -R jboss:jboss /opt/jboss/wildfly/standalone
-
-# Expose ports for HTTP, management console, and other necessary endpoints
+# Expose necessary ports
 EXPOSE 8080 9990
 
-# Declare persistent volumes for critical data and logs
-VOLUME ["/opt/jboss/wildfly/standalone/log", "/opt/jboss/wildfly/standalone/data", "/opt/jboss/wildfly/standalone/deployments"]
-
-# Start WildFly in standalone mode, binding it to all network interfaces
-CMD ["/opt/jboss/wildfly/bin/standalone.sh", "-b", "0.0.0.0"]
+# Command to run the Business Central Workbench
+CMD ["sh", "-c", "$JBOSS_HOME/bin/standalone.sh -b 0.0.0.0"]
