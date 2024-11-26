@@ -17,10 +17,15 @@ RUN mkdir -p \
     $JBOSS_HOME/standalone/configuration && \
     chown -R $USER:$USER $JBOSS_HOME/standalone && \
     chmod -R 755 $JBOSS_HOME/standalone && \
+    chmod -R u+w,g+w,o+w $JBOSS_HOME/standalone/data/kernel && \
     chmod 777 $JBOSS_HOME/standalone/data && \
     chmod 777 $JBOSS_HOME/standalone/log && \
     chmod 777 $JBOSS_HOME/standalone/tmp && \
     chmod 777 $JBOSS_HOME/standalone/deployments
+
+# Add a script to set permissions at runtime
+COPY set_permissions.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/set_permissions.sh
 
 # Define volumes for persistent data
 VOLUME ["$JBOSS_HOME/standalone/data", \
@@ -31,6 +36,9 @@ VOLUME ["$JBOSS_HOME/standalone/data", \
 
 # Expose necessary ports
 EXPOSE 8080 9990
+
+# Set the entrypoint to set permissions and run the server
+ENTRYPOINT ["set_permissions.sh"]
 
 # Command to run the Business Central Workbench
 CMD ["sh", "-c", "$JBOSS_HOME/bin/standalone.sh -b 0.0.0.0"]
