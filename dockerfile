@@ -45,3 +45,13 @@ EXPOSE 8080 9990
 
 # Command to run the Business Central Workbench
 CMD ["sh", "-c", "$JBOSS_HOME/bin/standalone.sh -b 0.0.0.0"]
+
+
+
+ports:
+    - protocol: TCP
+      port: 8080          # External port to bind to
+      targetPort: 8080    # Internal container port (Business Central UI)
+    - protocol: TCP
+      port: 9990          # External port to bind to for management console
+      targetPort: 9990   
