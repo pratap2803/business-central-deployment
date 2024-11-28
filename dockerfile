@@ -34,7 +34,7 @@ RUN ls -ld $JBOSS_HOME/standalone && \
     ls -ld $JBOSS_HOME/standalone/data/kernel
 
 # Create an Application Realm user
-RUN $JBOSS_HOME/bin/add-user.sh -a User1 admin@123 -g admin,kie-server
+RUN echo "User1" && echo "admin@123" && echo "admin,kie-server" | $JBOSS_HOME/bin/add-user.sh -a
 
 # Define volumes for persistent data
 VOLUME ["$JBOSS_HOME/standalone/data", \
