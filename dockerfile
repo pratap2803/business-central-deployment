@@ -33,6 +33,9 @@ RUN ls -ld $JBOSS_HOME/standalone && \
     ls -ld $JBOSS_HOME/standalone/data && \
     ls -ld $JBOSS_HOME/standalone/data/kernel
 
+# Create an Application Realm user
+RUN $JBOSS_HOME/bin/add-user.sh -a User1 admin@123 -g admin,kie-server
+
 # Define volumes for persistent data
 VOLUME ["$JBOSS_HOME/standalone/data", \
         "$JBOSS_HOME/standalone/deployments", \
@@ -45,19 +48,3 @@ EXPOSE 8080 9990
 
 # Command to run the Business Central Workbench
 CMD ["sh", "-c", "$JBOSS_HOME/bin/standalone.sh -b 0.0.0.0"]
-
-
-
-service:
-  name: business-central-service  # Name of the service
-  type: NodePort  # Expose service using NodePort (for external access)
-  ports:
-    - name: http  # Name of the first port
-      port: 8080   # Business Central UI port
-      targetPort: 8080
-      nodePort: 30001  # NodePort on the host for Business Central UI
-    - name: management  # Name of the second port
-      port: 9990   # Management Console port
-      targetPort: 9990
-      nodePort: 30002  # NodePort on the host for Management Console
- 
