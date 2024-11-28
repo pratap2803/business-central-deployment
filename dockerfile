@@ -33,8 +33,12 @@ RUN ls -ld $JBOSS_HOME/standalone && \
     ls -ld $JBOSS_HOME/standalone/data && \
     ls -ld $JBOSS_HOME/standalone/data/kernel
 
-# Create an Application Realm user
-RUN echo "User1" && echo "admin@123" && echo "admin,kie-server" | $JBOSS_HOME/bin/add-user.sh -a
+# Run the user creation script
+RUN /opt/jboss/wildfly/bin/add-user.sh && \
+    echo "newuser" && \
+    echo "newpassword" && \
+    echo "admin,kie-server,rest-all,analyst,developer" && \
+    echo "no"
 
 # Define volumes for persistent data
 VOLUME ["$JBOSS_HOME/standalone/data", \
