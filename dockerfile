@@ -5,10 +5,17 @@ FROM quay.io/kiegroup/business-central-workbench:latest
 ENV JBOSS_HOME=/opt/jboss/wildfly
 ENV USER=jboss
 
-USER jboss
-RUN /opt/jboss/wildfly/bin/add-user.sh -a -u kabir -p kabir123 -g users,admin -s
+# Switch to root user to perform administrative tasks
+USER root
 
-# Adjust file permissions
+# Update existing packages and install Maven, Gradle, and Curl
+RUN yum update -y && \
+    yum install -y curl maven gradle
+
+# Add a new user 'kabir' with admin and users group
+RUN $JBOSS_HOME/bin/add-user.sh -a -u kabir -p kabir123 -g users,admin -s
+
+# Adjust file permissions for necessary directories
 RUN mkdir -p \
     $JBOSS_HOME/standalone/data/content \
     $JBOSS_HOME/standalone/data/kernel \
@@ -21,6 +28,9 @@ RUN mkdir -p \
     chown -R $USER:$USER $JBOSS_HOME/standalone && \
     chmod -R 755 $JBOSS_HOME/standalone && \
     chmod -R 777 $JBOSS_HOME/standalone
+
+# Switch back to the 'jboss' user for security
+USER jboss
 
 # Define volumes for persistent data
 VOLUME ["$JBOSS_HOME/standalone/data", \
