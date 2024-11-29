@@ -5,14 +5,8 @@ FROM quay.io/kiegroup/business-central-workbench:latest
 ENV JBOSS_HOME=/opt/jboss/wildfly
 ENV USER=jboss
 
-# Install required tools
-RUN apt-get update && apt-get install -y sed
-
-# Disable authentication by modifying configuration files
-RUN sed -i '/<security-realm.*>/d' $JBOSS_HOME/standalone/configuration/standalone.xml && \
-    sed -i '/<security-domain.*>/d' $JBOSS_HOME/standalone/configuration/standalone.xml && \
-    echo -n "" > $JBOSS_HOME/standalone/configuration/application-users.properties && \
-    echo -n "" > $JBOSS_HOME/standalone/configuration/application-roles.properties
+USER jboss
+RUN /opt/jboss/wildfly/bin/add-user.sh -a -u kabir -p kabir123 -g users,admin -s
 
 # Adjust file permissions
 RUN mkdir -p \
