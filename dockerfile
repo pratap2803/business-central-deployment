@@ -52,3 +52,5 @@ EXPOSE 8080 9990
 
 # Command to run the Business Central Workbench
 CMD ["sh", "-c", "$JBOSS_HOME/bin/standalone.sh -b 0.0.0.0"]
+
+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
