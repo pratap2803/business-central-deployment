@@ -23,6 +23,13 @@ ENV PATH=$M2_HOME/bin:$PATH
 # Add a new user 'kabir' with admin and users group
 RUN $JBOSS_HOME/bin/add-user.sh -a -u kabir -p kabir123 -g users,admin -s
 
+# Copy custom settings.xml to both user-specific and global locations
+COPY settings.xml /root/.m2/settings.xml
+COPY settings.xml /usr/share/maven/conf/settings.xml
+
+# Set permissions for settings.xml
+RUN chmod 644 /root/.m2/settings.xml /usr/share/maven/conf/settings.xml
+
 # Adjust file permissions for necessary directories
 RUN mkdir -p \
     $JBOSS_HOME/standalone/data/content \
@@ -52,5 +59,3 @@ EXPOSE 8080 9990
 
 # Command to run the Business Central Workbench
 CMD ["sh", "-c", "$JBOSS_HOME/bin/standalone.sh -b 0.0.0.0"]
-
-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
