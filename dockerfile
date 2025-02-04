@@ -1,87 +1,166 @@
-1. Lending vs. Lending on Charge
-Lending (Credit Cards):
-Definition: Lending refers to credit cards that offer revolving credit. This means that cardholders can carry a balance from month to month, paying off part of the balance while the remaining balance continues to accrue interest. You don’t have to pay off the full balance in one go, which provides flexibility to manage your spending.
+The error **"Could not find or load main class io.github.classgraph.ClassGraph"** happens because `ClassGraph` is a **library** and does not include an executable main class.
 
-How it works:
+### **✅ Alternative Approach: Using JavaParser + Graphviz**
+Since `java-callgraph` doesn't provide an out-of-the-box executable, let's use **JavaParser** to analyze class dependencies and generate a class diagram.
 
-Revolving Credit: The outstanding balance can be carried over from month to month. This is different from charge cards, which require full payment of the balance at the end of each billing cycle.
-Interest Charges: When you carry a balance on a credit card, interest is charged on the unpaid balance, which can add up over time. The interest rates can vary based on factors like your credit score.
-Flexible Repayment: Credit cards with lending options give cardholders the flexibility to repay a portion of the balance (usually a minimum payment) while carrying the rest into the next month. This allows for ongoing and flexible payments.
-Example:
+---
 
-American Express Gold Card: This is a classic example of an Amex credit card with lending. You can carry a balance, make partial payments, and pay interest on the remaining balance.
-Amex Everyday Credit Card:
-A consumer lending card with revolving credit that allows carrying a balance and earning rewards points on various purchases.
-Why it's suitable for ongoing payments:
+## **🔹 Steps to Generate a Class Dependency Diagram (Automatically)**
+We'll use:
+- **JavaParser** (to analyze your `.java` files)
+- **Graphviz** (to generate the class diagram)
 
-These cards are perfect for consumers who may not be able to pay their entire balance every month. They offer the option to spread payments over time (with interest), making it easier for cardholders to manage larger purchases or unexpected expenses without having to pay everything at once.
-Lending on Charge (Charge Cards):
-Definition: Charge cards, like the American Express Platinum Card, typically require the full balance to be paid off at the end of each billing cycle. However, Lending on Charge adds an option that allows cardholders to pay off certain charges in installments over time, making it more flexible for larger purchases.
+---
 
-How it works:
+### **Step 1: Clone Your GitHub Repo (If Not Already Done)**
+```sh
+git clone <your-repo-url>
+cd <your-repo-name>
+```
 
-Installment Flexibility: Charge cards traditionally require full payment each month, but the Pay Over Time or Plan It feature allows cardholders to convert eligible charges (usually larger purchases) into monthly installment plans.
-Interest Charges: Similar to lending cards, interest is charged on balances carried over in installments. This allows for flexibility but still comes with the added cost of interest.
-Partial Payments: With Lending on Charge, cardholders can pay off larger transactions over time rather than paying the entire balance upfront.
-Example:
+---
 
-American Express Platinum Card:
-With the Pay Over Time option, cardholders can select certain purchases (like large hotel stays or flights) to be paid in installments, instead of requiring the entire bill to be paid at once.
-American Express Green Card:
-Another example of a charge card with installment options, offering flexibility for users to pay off purchases over time.
-Why it adds installment flexibility to charge cards:
+### **Step 2: Install JavaParser & Graphviz**
+#### **Mac (Homebrew)**
+```sh
+brew install graphviz
+```
 
-Charge cards are traditionally not designed for revolving balances; they require the full payment of the balance every month. By adding the Lending on Charge feature, Amex makes charge cards more flexible for users who may need more time to pay off larger or unexpected expenses without paying the full amount immediately.
-2. Consumer vs. Small Business
-Consumer Lending:
-Definition: Consumer lending refers to credit cards issued to individuals for personal use. These cards allow users to make everyday purchases, earn rewards, and manage their personal finances. They are designed with individual consumers in mind, offering both revolving credit and installment options (in the case of lending on charge).
+#### **Windows (Chocolatey)**
+```sh
+choco install graphviz
+```
 
-Key Features:
+Also, **download JavaParser** (a library to analyze Java code).
 
-Designed for Personal Use: Consumer credit cards cater to individual expenses like groceries, dining, entertainment, and travel.
-Rewards and Benefits: Many consumer credit cards offer rewards like cashback or points for spending in specific categories, such as dining or travel.
-Flexible Repayment: Cardholders can carry balances and pay over time, paying only part of the bill (with interest) or opting for installment plans (with interest).
-Lower Credit Limits: Consumer lending cards generally come with lower credit limits compared to business cards, as they are designed for individual spending.
-Example:
+```sh
+wget https://repo1.maven.org/maven2/com/github/javaparser/javaparser-core/3.24.2/javaparser-core-3.24.2.jar -O javaparser.jar
+```
+For **Windows**, use:
+```sh
+curl -L -o javaparser.jar https://repo1.maven.org/maven2/com/github/javaparser/javaparser-core/3.24.2/javaparser-core-3.24.2.jar
+```
 
-American Express Gold Card:
-A credit card with excellent rewards for dining and travel, designed for personal use. Cardholders can carry a balance and earn Membership Rewards points.
-American Express Everyday Credit Card:
-A consumer card designed for flexible payments and earning rewards points on a wide range of purchases.
-Why it's ideal for personal expenses:
+---
 
-These cards are made for everyday personal expenses like shopping, dining, travel, and entertainment. They help individuals manage their finances by providing revolving credit and, in some cases, lending on charge for large purchases.
-Small Business Lending:
-Definition: Small Business Lending refers to business credit cards issued to small businesses, offering revolving credit to help manage business expenses. These cards allow business owners to carry balances, make payments over time, and take advantage of rewards tailored for business use.
+### **Step 3: Create Java File for Parsing**
+Create a new file **`DependencyAnalyzer.java`** inside your project folder.
 
-Key Features:
+```sh
+touch DependencyAnalyzer.java
+```
+Paste this **Java code** into `DependencyAnalyzer.java`:
 
-Designed for Businesses: Small business credit cards are intended for business owners who need to manage business-related expenses like office supplies, marketing, travel, and employee costs.
-Higher Credit Limits: These cards often come with higher credit limits compared to consumer cards, allowing businesses to handle larger transactions.
-Business-Specific Rewards: Many business cards offer rewards based on business expenses like travel, office supplies, and advertising. These rewards can be redeemed for statement credits, travel, or merchandise.
-Expense Management Tools: Small business cards come with tools to track and categorize expenses, as well as employee card controls that allow businesses to manage spending across employees.
-Example:
+```java
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
-American Express Business Gold Card:
-A business credit card that offers great rewards on business-related purchases like advertising and travel, and allows businesses to carry a balance and pay over time.
-Amex Blue Business Plus Credit Card:
-A business card with no annual fee and rewards on all purchases, designed for small business owners who need flexibility and a straightforward rewards structure.
-Why it's designed for business expenses:
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.*;
 
-Small business credit cards are intended to help business owners with large and varied business expenses, offering features like higher credit limits, rewards for business spending, and tools to track and manage expenses more effectively.
-Comparison of Consumer vs. Small Business Lending:
-Aspect	Consumer Lending	Small Business Lending
-Target Audience	Individuals (consumers)	Small business owners
-Primary Use	Personal expenses like dining, shopping, travel	Business expenses like office supplies, advertising, travel
-Credit Limits	Generally lower credit limits	Higher credit limits to accommodate business expenses
-Rewards	Rewards for personal categories like dining or travel	Rewards tailored to business categories like office supplies, advertising, and travel
-Tools	Basic rewards and payment options	Expense management tools, employee card controls, integration with financial software
-Key Takeaways:
-Lending vs. Lending on Charge:
+public class DependencyAnalyzer {
+    private static final Map<String, Set<String>> dependencies = new HashMap<>();
 
-Lending (Credit Cards) allows for revolving credit where you can carry balances over time and make payments at your convenience.
-Lending on Charge adds the flexibility of installment payments to charge cards, which traditionally required full payment of the balance each month.
-Consumer vs. Small Business:
+    public static void main(String[] args) {
+        if (args.length < 1) {
+            System.out.println("Usage: java -cp javaparser.jar:. DependencyAnalyzer <source-folder>");
+            return;
+        }
 
-Consumer Lending is ideal for managing personal expenses with flexible payments and rewards.
-Small Business Lending is designed for businesses, providing higher limits, business-specific rewards, and tools to manage business expenses effectively.
+        File projectDir = new File(args[0]);
+        analyzeDirectory(projectDir);
+        generateGraphviz();
+    }
+
+    private static void analyzeDirectory(File dir) {
+        if (dir.isDirectory()) {
+            for (File file : Objects.requireNonNull(dir.listFiles())) {
+                analyzeDirectory(file);
+            }
+        } else if (dir.getName().endsWith(".java")) {
+            try {
+                CompilationUnit cu = StaticJavaParser.parse(dir);
+                cu.accept(new ClassVisitor(), null);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static class ClassVisitor extends VoidVisitorAdapter<Void> {
+        @Override
+        public void visit(ClassOrInterfaceDeclaration n, Void arg) {
+            String className = n.getNameAsString();
+            dependencies.putIfAbsent(className, new HashSet<>());
+
+            n.getExtendedTypes().forEach(type -> dependencies.get(className).add(type.getNameAsString()));
+            n.getImplementedTypes().forEach(type -> dependencies.get(className).add(type.getNameAsString()));
+
+            super.visit(n, arg);
+        }
+    }
+
+    private static void generateGraphviz() {
+        StringBuilder dot = new StringBuilder("digraph G {\n");
+
+        for (Map.Entry<String, Set<String>> entry : dependencies.entrySet()) {
+            for (String dep : entry.getValue()) {
+                dot.append("  \"").append(entry.getKey()).append("\" -> \"").append(dep).append("\";\n");
+            }
+        }
+
+        dot.append("}");
+        System.out.println(dot.toString());
+
+        try {
+            File dotFile = new File("class-diagram.dot");
+            java.nio.file.Files.write(dotFile.toPath(), dot.toString().getBytes());
+            System.out.println("Graph saved to class-diagram.dot");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+---
+
+### **Step 4: Compile & Run the Analyzer**
+Compile the Java file with **JavaParser**:
+```sh
+javac -cp javaparser.jar:. DependencyAnalyzer.java
+```
+
+Now, run it to analyze your Java project:
+```sh
+java -cp javaparser.jar:. DependencyAnalyzer src > class-diagram.dot
+```
+**(Replace `src` with your actual source folder if needed.)**
+
+---
+
+### **Step 5: Convert `.dot` File to PNG**
+```sh
+dot -Tpng class-diagram.dot -o class-diagram.png
+```
+This will generate **`class-diagram.png`**, showing the **class relationships (flowchart of class calls).**
+
+---
+
+## **✅ What You Get?**
+- **Fully automated** generation of class dependency diagrams.
+- **No manual work**—just run a single command.
+- **Works on any Java project** with `.java` source files.
+
+---
+
+### **🚀 Want an Automated Script for All Steps?**
+I can provide a **bash or PowerShell script** to:
+1. **Download dependencies**
+2. **Compile & run the analyzer**
+3. **Generate the class diagram automatically**
+
+Let me know if you need it! 🚀🔥
