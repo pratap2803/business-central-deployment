@@ -164,3 +164,4 @@ I can provide a **bash or PowerShell script** to:
 3. **Generate the class diagram automatically**
 
 Let me know if you need it! 🚀🔥
+RUN mkdir -p /opt/jboss/wildfly/bin/.niogit && chown -R jboss:jboss /opt/jboss/wildfly/bin/.niogit
