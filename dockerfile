@@ -1,167 +1,74 @@
-The error **"Could not find or load main class io.github.classgraph.ClassGraph"** happens because `ClassGraph` is a **library** and does not include an executable main class.
-
-### **✅ Alternative Approach: Using JavaParser + Graphviz**
-Since `java-callgraph` doesn't provide an out-of-the-box executable, let's use **JavaParser** to analyze class dependencies and generate a class diagram.
+If your company does not allow mounting directly at `/opt/jboss/wildfly/bin/.niogit`, you have a few alternative approaches to persist the `.niogit` directory **without directly mounting it**.  
 
 ---
 
-## **🔹 Steps to Generate a Class Dependency Diagram (Automatically)**
-We'll use:
-- **JavaParser** (to analyze your `.java` files)
-- **Graphviz** (to generate the class diagram)
+### **✅ Best Alternative: Mount Elsewhere & Create a Symlink**  
+Since you **cannot mount at `.niogit`**, you can:  
+1. **Mount the volume at a different location (e.g., `/mnt/niogit`)**  
+2. **Create a symbolic link from `/opt/jboss/wildfly/bin/.niogit` to `/mnt/niogit`**  
+
+#### **1️⃣ Modify Deployment YAML**  
+```yaml
+volumeMounts:
+  - name: niogit-volume
+    mountPath: "/mnt/niogit"  # Mounting elsewhere
+```
+```yaml
+volumes:
+  - name: niogit-volume
+    persistentVolumeClaim:
+      claimName: niogit-pvc
+```
+
+#### **2️⃣ Use an Init Container to Create a Symlink**  
+```yaml
+initContainers:
+  - name: setup-symlink
+    image: busybox
+    command: ["sh", "-c", "ln -sfn /mnt/niogit /opt/jboss/wildfly/bin/.niogit"]
+    volumeMounts:
+      - name: niogit-volume
+        mountPath: "/mnt/niogit"
+```
+
+🔹 **How This Works?**  
+- The `.niogit` directory is now actually stored in `/mnt/niogit`.  
+- The symlink makes `/opt/jboss/wildfly/bin/.niogit` **point to `/mnt/niogit`**, so Business Central works as expected.  
 
 ---
 
-### **Step 1: Clone Your GitHub Repo (If Not Already Done)**
-```sh
-git clone <your-repo-url>
-cd <your-repo-name>
+### **🔄 Alternative: Copy `.niogit` Data Instead of Mounting**
+If symlinks are also restricted, another option is to **copy the `.niogit` data into a mounted volume** before Business Central starts.  
+
+#### **1️⃣ Modify Deployment YAML (Mount Volume to `/mnt/niogit`)**
+```yaml
+volumeMounts:
+  - name: niogit-volume
+    mountPath: "/mnt/niogit"
 ```
+
+#### **2️⃣ Use an Init Container to Copy `.niogit`**
+```yaml
+initContainers:
+  - name: copy-niogit
+    image: busybox
+    command: ["sh", "-c", "cp -r /opt/jboss/wildfly/bin/.niogit/* /mnt/niogit/"]
+    volumeMounts:
+      - name: niogit-volume
+        mountPath: "/mnt/niogit"
+```
+
+🔹 **How This Works?**  
+- Business Central **still uses `/opt/jboss/wildfly/bin/.niogit`**.  
+- The **Init Container copies existing `.niogit` data** to a persistent volume at `/mnt/niogit`.  
 
 ---
 
-### **Step 2: Install JavaParser & Graphviz**
-#### **Mac (Homebrew)**
+### **🛠️ Debugging Tip: Check Existing `.niogit` Data**
+Before making changes, run this inside your pod to see the `.niogit` contents:  
 ```sh
-brew install graphviz
+kubectl exec -it <pod-name> -- ls -la /opt/jboss/wildfly/bin/.niogit
 ```
+This will help determine whether symlinks or copying is the better approach.  
 
-#### **Windows (Chocolatey)**
-```sh
-choco install graphviz
-```
-
-Also, **download JavaParser** (a library to analyze Java code).
-
-```sh
-wget https://repo1.maven.org/maven2/com/github/javaparser/javaparser-core/3.24.2/javaparser-core-3.24.2.jar -O javaparser.jar
-```
-For **Windows**, use:
-```sh
-curl -L -o javaparser.jar https://repo1.maven.org/maven2/com/github/javaparser/javaparser-core/3.24.2/javaparser-core-3.24.2.jar
-```
-
----
-
-### **Step 3: Create Java File for Parsing**
-Create a new file **`DependencyAnalyzer.java`** inside your project folder.
-
-```sh
-touch DependencyAnalyzer.java
-```
-Paste this **Java code** into `DependencyAnalyzer.java`:
-
-```java
-import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.*;
-
-public class DependencyAnalyzer {
-    private static final Map<String, Set<String>> dependencies = new HashMap<>();
-
-    public static void main(String[] args) {
-        if (args.length < 1) {
-            System.out.println("Usage: java -cp javaparser.jar:. DependencyAnalyzer <source-folder>");
-            return;
-        }
-
-        File projectDir = new File(args[0]);
-        analyzeDirectory(projectDir);
-        generateGraphviz();
-    }
-
-    private static void analyzeDirectory(File dir) {
-        if (dir.isDirectory()) {
-            for (File file : Objects.requireNonNull(dir.listFiles())) {
-                analyzeDirectory(file);
-            }
-        } else if (dir.getName().endsWith(".java")) {
-            try {
-                CompilationUnit cu = StaticJavaParser.parse(dir);
-                cu.accept(new ClassVisitor(), null);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private static class ClassVisitor extends VoidVisitorAdapter<Void> {
-        @Override
-        public void visit(ClassOrInterfaceDeclaration n, Void arg) {
-            String className = n.getNameAsString();
-            dependencies.putIfAbsent(className, new HashSet<>());
-
-            n.getExtendedTypes().forEach(type -> dependencies.get(className).add(type.getNameAsString()));
-            n.getImplementedTypes().forEach(type -> dependencies.get(className).add(type.getNameAsString()));
-
-            super.visit(n, arg);
-        }
-    }
-
-    private static void generateGraphviz() {
-        StringBuilder dot = new StringBuilder("digraph G {\n");
-
-        for (Map.Entry<String, Set<String>> entry : dependencies.entrySet()) {
-            for (String dep : entry.getValue()) {
-                dot.append("  \"").append(entry.getKey()).append("\" -> \"").append(dep).append("\";\n");
-            }
-        }
-
-        dot.append("}");
-        System.out.println(dot.toString());
-
-        try {
-            File dotFile = new File("class-diagram.dot");
-            java.nio.file.Files.write(dotFile.toPath(), dot.toString().getBytes());
-            System.out.println("Graph saved to class-diagram.dot");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-
----
-
-### **Step 4: Compile & Run the Analyzer**
-Compile the Java file with **JavaParser**:
-```sh
-javac -cp javaparser.jar:. DependencyAnalyzer.java
-```
-
-Now, run it to analyze your Java project:
-```sh
-java -cp javaparser.jar:. DependencyAnalyzer src > class-diagram.dot
-```
-**(Replace `src` with your actual source folder if needed.)**
-
----
-
-### **Step 5: Convert `.dot` File to PNG**
-```sh
-dot -Tpng class-diagram.dot -o class-diagram.png
-```
-This will generate **`class-diagram.png`**, showing the **class relationships (flowchart of class calls).**
-
----
-
-## **✅ What You Get?**
-- **Fully automated** generation of class dependency diagrams.
-- **No manual work**—just run a single command.
-- **Works on any Java project** with `.java` source files.
-
----
-
-### **🚀 Want an Automated Script for All Steps?**
-I can provide a **bash or PowerShell script** to:
-1. **Download dependencies**
-2. **Compile & run the analyzer**
-3. **Generate the class diagram automatically**
-
-Let me know if you need it! 🚀🔥
-RUN mkdir -p /opt/jboss/wildfly/bin/.niogit && chown -R jboss:jboss /opt/jboss/wildfly/bin/.niogit
+Would you like help testing this in your setup? 🚀
